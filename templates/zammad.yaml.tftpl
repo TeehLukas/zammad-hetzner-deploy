@@ -1,0 +1,25 @@
+x-shared:
+  zammad-service:
+    environment:
+      NGINX_SERVER_SCHEME: "https"
+      RAILS_TRUSTED_PROXIES: "traefik-traefik-1"
+
+services:
+  zammad-nginx:
+    ports: []
+    networks:
+      - traefik-proxy
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zammad.rule=Host(`${domain}`)"
+      - "traefik.http.routers.zammad.entrypoints=https"
+      - "traefik.http.routers.zammad.tls=true"
+      - "traefik.http.routers.zammad.tls.certresolver=le"
+      - "traefik.http.services.zammad.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.zammad-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.zammad.middlewares=zammad-headers"
+
+networks:
+  traefik-proxy:
+    external: true

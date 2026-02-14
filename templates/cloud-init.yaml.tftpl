@@ -1,0 +1,41 @@
+#cloud-config
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+      
+packages:
+  - docker-ce
+  - docker-ce-cli
+  - docker-compose-plugin
+  - containerd.io
+  - docker-buildx-plugin
+
+write_files:
+  - path: /root/docker-compose.override.yml
+    owner: 'root:root'
+    permissions: '0644'
+    content: |
+      ${indent(6, zammad)}
+
+  - path: /root/traefik/docker-compose.yml
+    owner: 'root:root'
+    permissions: '0644'
+    content: |
+      ${indent(6, traefik)}
+
+runcmd:
+  #Hardening
+  - [ bash, -c, 'sed -i "s|^#PasswordAuthentication yes|PasswordAuthentication no|" /etc/ssh/sshd_config' ]
+  - [ bash, -c, 'sed -i "s|^#PubkeyAuthentication yes|PubkeyAuthentication yes|" /etc/ssh/sshd_config' ]
+  - [ bash, -c, 'sed -i "s|^#PermitRootLogin prohibit-password|PermitRootLogin no|" /etc/ssh/sshd_config' ]
+  - [ bash, -c, 'systemctl restart ssh' ]
+
+  #Installation
+  - [ bash, -c, "cd /root/traefik && docker compose up -d " ]
+  - [ bash, -c, "cd /root && git clone https://github.com/zammad/zammad-docker-compose.git && mv /root/docker-compose.override.yml /root/zammad-docker-compose/docker-compose.override.yml && cd zammad-docker-compose && docker compose up -d " ]
+
+
+
+
