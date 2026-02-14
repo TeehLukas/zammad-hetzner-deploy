@@ -1,4 +1,3 @@
-### Server creation with one linked primary ip (ipv4)
 resource "hcloud_primary_ip" "primary_ip_1" {
   name          = "primary_ip_test"
   location      = "hel1"
