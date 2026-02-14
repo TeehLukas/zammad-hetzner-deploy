@@ -1,5 +1,5 @@
 resource "hcloud_primary_ip" "primary_ip_1" {
-  name          = "primary_ip_test"
+  name          = "zammad-ip"
   location      = "hel1"
   type          = "ipv4"
   assignee_type = "server"

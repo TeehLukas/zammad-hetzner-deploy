@@ -18,6 +18,7 @@ services:
       - "traefik.http.routers.zammad.tls.certresolver=le"
       - "traefik.http.services.zammad.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.zammad-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.zammad-headers.headers.customrequestheaders.X-Forwarded-Ssl=on"
       - "traefik.http.routers.zammad.middlewares=zammad-headers"
 
 networks:

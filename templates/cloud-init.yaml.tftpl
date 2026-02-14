@@ -4,13 +4,24 @@ apt:
     docker.list:
       source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
       keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-      
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+unattended_upgrade:
+  enable: true
+  remove_unused_dependencies: true
+  automatic_reboot: true
+  reboot_time: "04:00"
+
 packages:
   - docker-ce
   - docker-ce-cli
   - docker-compose-plugin
   - containerd.io
   - docker-buildx-plugin
+  - fail2ban
+  - ufw
 
 write_files:
   - path: /root/docker-compose.override.yml
@@ -24,13 +35,21 @@ write_files:
     permissions: '0644'
     content: |
       ${indent(6, traefik)}
+  
+  - path: /etc/sysctl.d/99-hardening.conf
+    content: |
+      net.ipv4.conf.all.accept_source_route = 0
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv4.conf.all.secure_redirects = 0
+      net.ipv4.conf.all.log_martians = 1
 
 runcmd:
   #Hardening
-  - [ bash, -c, 'sed -i "s|^#PasswordAuthentication yes|PasswordAuthentication no|" /etc/ssh/sshd_config' ]
-  - [ bash, -c, 'sed -i "s|^#PubkeyAuthentication yes|PubkeyAuthentication yes|" /etc/ssh/sshd_config' ]
-  - [ bash, -c, 'sed -i "s|^#PermitRootLogin prohibit-password|PermitRootLogin no|" /etc/ssh/sshd_config' ]
-  - [ bash, -c, 'systemctl restart ssh' ]
+  - [ bash, -c, 'systemctl stop ssh' ]
+  - [ bash, -c, 'systemctl disable ssh' ] 
+  - [ ufw, allow, "80/tcp" ]
+  - [ ufw, allow, "443/tcp" ]
+  - [ ufw, --force, enable ]
 
   #Installation
   - [ bash, -c, "cd /root/traefik && docker compose up -d " ]
